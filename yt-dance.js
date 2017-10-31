@@ -1,12 +1,14 @@
 
 
 
-var title = document.getElementsByClassName('title')[0];
+var title = document.getElementsByClassName('ytd-video-primary-info-renderer')[0];
 var title_orig = title.textContent;
 var video = document.getElementsByTagName('video')[0]
 var mirrored = false;
+console.log('done')
 
 window.onkeydown = function(event) {
+	console.log('hi')
 	var c = video.playbackRate;
 
 	switch (event.keyCode) {
