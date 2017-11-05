@@ -1,3 +1,17 @@
+/*
+
+speed / mirroring tools for Youtube
+
+(useful for learning dance from videos)
+
+- press 'p' to speed up by 0.1x
+- press 'q' to slow down by 0.1x
+- press 'i' to mirror (and again to unmirror)
+- press 'r' to reset to 1x unmirrored (original video)
+
+*/
+
+
 var yt_dance_main = function() {
     var titles = document.getElementsByClassName('ytd-video-primary-info-renderer title');
     var titles_orig = [];
