@@ -62,9 +62,9 @@ var yt_dance_main = function() {
             str += ', mirrored'
         }
         str += ']'
-        for (t = 0; t < titles.length; t++) {
-            titles[t].textContent = titles_orig[t] + str;
-        }
+        // for (t = 0; t < titles.length; t++) {
+        //     titles[t].textContent = titles_orig[t] + str;
+        // }
         para.textContent = str;
         
         console.log('playback rate:',video.playbackRate)
