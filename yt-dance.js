@@ -17,7 +17,7 @@ var yt_dance_main = function() {
     var titles_orig = [];
     for (var t = 0; t < titles.length; t++) {
         titles_orig.push(titles[t].textContent);
-        titles[t].textContent += ' [1x]';
+        //titles[t].textContent += ' [1x]';
     }
 
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
