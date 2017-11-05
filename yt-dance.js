@@ -1,14 +1,25 @@
 
 
 
-var title = document.getElementsByClassName('ytd-video-primary-info-renderer')[0];
-var title_orig = title.textContent;
+var titles = document.getElementsByClassName('ytd-video-primary-info-renderer title');
+var titles_orig = [];
+for (var t = 0; t < titles.length; t++) {
+    titles_orig.push(titles[t].textContent);
+}
+
+var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
+var node = document.createTextNode("");
+var para = document.createElement("p");
+para.appendChild(node);
+vid_buttons.appendChild(para);
+para.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+para.style.fontSize = '25px'
+
 var video = document.getElementsByTagName('video')[0]
 var mirrored = false;
 console.log('done')
 
 window.onkeydown = function(event) {
-	console.log('hi')
 	var c = video.playbackRate;
 
 	switch (event.keyCode) {
@@ -21,13 +32,28 @@ window.onkeydown = function(event) {
 			break;
 		case 81:
 			c -= 0.1;
+            break;
+        case 82:
+            c = 1;
+            if (mirrored) {
+                flip();
+                mirrored = false;
+            }
+            break;
 	}
 	video.playbackRate = c;
-	title.textContent = title_orig + ' (' + Math.round(c * 10)/10 + 'x)';
-	if (mirrored) {
-		title.textContent += ' (mirrored)'
-	}
-	console.log(document.getElementsByTagName('video')[0].playbackRate)
+    var str = ' [' + Math.round(c * 10)/10 + 'x';
+    if (mirrored) {
+        str += ', mirrored'
+    }
+    str += ']'
+    for (t = 0; t < titles.length; t++) {
+        titles[t].textContent = titles_orig[t] + str;
+    }
+    para.textContent = str;
+	
+	console.log('playback rate:',video.playbackRate)
+    console.log('mirrored:', mirrored)
 };
 
 
