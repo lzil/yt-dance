@@ -50,11 +50,16 @@ var yt_dance_main = function() {
 
 
     player.addEventListener('onStateChange', function() {
+        var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+        info.style.display = 'none'
         if (id !== player.getVideoData()['video_id']) {
+            id = player.getVideoData()['video_id']
             time_text.textContent = ''
             time_save = 0;
-            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-            info.style.display = 'none'
+            // setTimeout(function() {
+            //     var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+            //     info.style.display = 'none'
+            // }, 500)
         }
     })
 
@@ -69,7 +74,6 @@ var yt_dance_main = function() {
                 var mins = parseInt(time_save / 60)
                 var secs = parseInt(time_save - mins * 60)
                 var msecs = parseInt(100*(time_save - mins * 60 - secs))
-
                 if (secs < 10) {
                     secs = '0' + secs;
                 }
@@ -128,7 +132,7 @@ var yt_dance_main = function() {
             node.innerHTML = str;
         }
 
-        cssText = ".xflip { \
+        var cssText = ".xflip { \
           -moz-transform: scale(-1, 1) !important;\
           -webkit-transform: scale(-1, 1) !important;\
           -o-transform: scale(-1, 1) !important;\
