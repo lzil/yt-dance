@@ -23,6 +23,9 @@ var yt_dance_main = function() {
         //titles[t].textContent += ' [1x]';
     }
 
+    var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+    info.style.display = 'none'
+
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
     var speed_node = document.createTextNode("[1x]");
     var speed_text = document.createElement("p");
@@ -32,7 +35,10 @@ var yt_dance_main = function() {
     speed_text.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
     speed_text.style.fontSize = '25px';
     speed_text.style.marginTop = '10px';
-    speed_text.style.textAlign = 'right'
+    speed_text.style.textAlign = 'left';
+    speed_text.style.left = 0;
+    speed_text.style.position = 'absolute';
+    speed_text.style.padding = '0 5px 0 5px ';
 
     var time_node = document.createTextNode("0:00:00");
     var time_text = document.createElement("p");
@@ -41,7 +47,11 @@ var yt_dance_main = function() {
     time_text.setAttribute('id', 'video-time-label')
     time_text.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
     time_text.style.fontSize = '25px';
-    time_text.style.textAlign = 'right'
+    time_text.style.left = 0;
+    time_text.style.position = 'absolute'
+    time_text.style.top = '42px';
+    time_text.style.padding = '0 5px 0 5px'
+    //time_text.style.textAlign = 'right'
     //para.style.marginRight = '15px';
 
     var video = document.getElementsByTagName('video')[0];
@@ -49,9 +59,23 @@ var yt_dance_main = function() {
     var mirrored = false;
     var time_save = 0;
 
+    player.addEventListener('onStateChange', function() {
+        time_text.textContent = '0:00:00'
+        time_save = 0;
+        setTimeout(function() {
+            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+            info.style.display = 'none'
+        }, 500)
+        
+    })
+
     window.onkeydown = function(event) {
         var c = video.playbackRate;
         //var c = player.getPlaybackRate();
+        console.log(event.target.nodeName)
+        if (event.target.nodeName == 'INPUT') {
+            return;
+        }
         switch (event.keyCode) {
             case 83: //s
                 time_save = player.getCurrentTime();
@@ -88,6 +112,13 @@ var yt_dance_main = function() {
                     mirrored = false;
                 }
                 break;
+            case 32: //space
+                if (player.getPlayerState() == 1) {
+                    player.pauseVideo();
+                } else if (player.getPlayerState() == 2) {
+                    player.playVideo();
+                }
+                break;
         }
         video.playbackRate = c;
         //player.setPlaybackRate(c);
@@ -100,8 +131,8 @@ var yt_dance_main = function() {
         //     titles[t].textContent = titles_orig[t] + str;
         // }
         speed_text.textContent = str;
-        console.log('timestamp:',video.playbackRate)
-        console.log('playback rate:',player.getPlaybackRate())
+        console.log('timestamp:', player.getCurrentTime())
+        console.log('playback rate:', video.playbackRate);
         console.log('mirrored:', mirrored)
     };
 
@@ -144,3 +175,8 @@ try {
     yt_dance_main();
 }
 
+window.addEventListener('keydown', function(e) {
+    if(e.keyCode == 32 && e.target == document.body) {
+        e.preventDefault();
+    }
+});
