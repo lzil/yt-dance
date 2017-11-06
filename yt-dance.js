@@ -10,69 +10,58 @@ speed / mirroring tools for Youtube
 - 'r' to reset to 1x unmirrored (original video)
 
 - 's' to save current timestamp
-- 'g' to go to saved timestamp
+- 'g' to go to saved timestamp (defaults to 0:00:00)
 
 */
 
 
 var yt_dance_main = function() {
-    var titles = document.getElementsByClassName('ytd-video-primary-info-renderer title');
-    var titles_orig = [];
-    for (var t = 0; t < titles.length; t++) {
-        titles_orig.push(titles[t].textContent);
-        //titles[t].textContent += ' [1x]';
-    }
-
+    // hide info button which changes layout of labels
     var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
     info.style.display = 'none'
 
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
+
+    // label for speed of video
     var speed_node = document.createTextNode("[1x]");
     var speed_text = document.createElement("p");
     speed_text.appendChild(speed_node);
     vid_buttons.appendChild(speed_text);
     speed_text.setAttribute('id', 'video-speed-label')
-    speed_text.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    speed_text.style.fontSize = '25px';
-    speed_text.style.marginTop = '10px';
-    speed_text.style.textAlign = 'left';
-    speed_text.style.left = 0;
-    speed_text.style.position = 'absolute';
-    speed_text.style.padding = '0 5px 0 5px ';
+    speed_text.setAttribute('style',
+        'background-color:rgba(0,0,0,0.3);font-size:25px;margin-top:10px;left:0;position:absolute;padding:0 5px 0 5px'
+    )
 
-    var time_node = document.createTextNode("0:00:00");
+    // label for saved timestamp in video
+    var time_node = document.createTextNode("");
     var time_text = document.createElement("p");
     time_text.appendChild(time_node);
     vid_buttons.appendChild(time_text);
     time_text.setAttribute('id', 'video-time-label')
-    time_text.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
-    time_text.style.fontSize = '25px';
-    time_text.style.left = 0;
-    time_text.style.position = 'absolute'
-    time_text.style.top = '42px';
-    time_text.style.padding = '0 5px 0 5px'
-    //time_text.style.textAlign = 'right'
-    //para.style.marginRight = '15px';
+    time_text.setAttribute('style',
+        'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
+    )
 
     var video = document.getElementsByTagName('video')[0];
     var player = document.getElementById('movie_player');
     var mirrored = false;
     var time_save = 0;
+    var id = player.getVideoData()['video_id'];
+
 
     player.addEventListener('onStateChange', function() {
-        time_text.textContent = '0:00:00'
-        time_save = 0;
-        setTimeout(function() {
-            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-            info.style.display = 'none'
-        }, 500)
-        
+        if (id !== player.getVideoData()['video_id']) {
+            time_text.textContent = ''
+            time_save = 0;
+            setTimeout(function() {
+                var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+                info.style.display = 'none'
+            }, 500)
+        }
     })
 
     window.onkeydown = function(event) {
         var c = video.playbackRate;
-        //var c = player.getPlaybackRate();
-        console.log(event.target.nodeName)
         if (event.target.nodeName == 'INPUT') {
             return;
         }
@@ -121,15 +110,11 @@ var yt_dance_main = function() {
                 break;
         }
         video.playbackRate = c;
-        //player.setPlaybackRate(c);
         var str = ' [' + Math.round(c * 10)/10 + 'x';
         if (mirrored) {
             str += ', mirrored'
         }
         str += ']'
-        // for (t = 0; t < titles.length; t++) {
-        //     titles[t].textContent = titles_orig[t] + str;
-        // }
         speed_text.textContent = str;
         console.log('timestamp:', player.getCurrentTime())
         console.log('playback rate:', video.playbackRate);
@@ -166,6 +151,12 @@ var yt_dance_main = function() {
             }
         };
     }
+
+    window.addEventListener('keydown', function(e) {
+        if(e.keyCode == 32 && e.target == document.body) {
+            e.preventDefault();
+        }
+    });
 }
 
 try {
@@ -175,8 +166,3 @@ try {
     yt_dance_main();
 }
 
-window.addEventListener('keydown', function(e) {
-    if(e.keyCode == 32 && e.target == document.body) {
-        e.preventDefault();
-    }
-});
