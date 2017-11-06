@@ -53,10 +53,8 @@ var yt_dance_main = function() {
         if (id !== player.getVideoData()['video_id']) {
             time_text.textContent = ''
             time_save = 0;
-            setTimeout(function() {
-                var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-                info.style.display = 'none'
-            }, 500)
+            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+            info.style.display = 'none'
         }
     })
 
