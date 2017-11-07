@@ -4,6 +4,17 @@ speed / mirroring tools for Youtube
 
 (useful for learning dance from videos)
 
+# TO ACTIVATE
+Set the following as a bookmark in any browser and 'click' the bookmark on a Youtube video.
+
+~~~
+
+javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.rawgit.com/lzil/yt-dance/master/yt-dance.js%27%3B%7D)()%3B
+
+~~~
+
+# TO USE
+
 - 'p' to speed up by 0.1x
 - 'q' to slow down by 0.1x
 - 'i' to mirror (and again to unmirror)
@@ -12,13 +23,16 @@ speed / mirroring tools for Youtube
 - 's' to save current timestamp
 - 'g' to go to saved timestamp (defaults to 0:00:00)
 
+- '<space>' now pauses/unpauses video even when not focused on video
+- '<right/left arrows>' now fast forwards / rewinds 5 seconds when not focused on video
+
 */
 
 
 var yt_dance_main = function() {
     // hide info button which changes layout of labels
     var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-    info.style.display = 'none'
+    info.style.display = 'none';
 
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
 
@@ -27,10 +41,10 @@ var yt_dance_main = function() {
     var speed_text = document.createElement("p");
     speed_text.appendChild(speed_node);
     vid_buttons.appendChild(speed_text);
-    speed_text.setAttribute('id', 'video-speed-label')
+    speed_text.setAttribute('id', 'video-speed-label');
     speed_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:25px;margin-top:10px;left:0;position:absolute;padding:0 5px 0 5px'
-    )
+    );
 
     // label for saved timestamp in video
     var time_node = document.createTextNode("");
@@ -40,7 +54,7 @@ var yt_dance_main = function() {
     time_text.setAttribute('id', 'video-time-label')
     time_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
-    )
+    );
 
     var video = document.getElementsByTagName('video')[0];
     var player = document.getElementById('movie_player');
@@ -51,15 +65,11 @@ var yt_dance_main = function() {
 
     player.addEventListener('onStateChange', function() {
         var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-        info.style.display = 'none'
+        info.style.display = 'none';
         if (id !== player.getVideoData()['video_id']) {
-            id = player.getVideoData()['video_id']
-            time_text.textContent = ''
+            id = player.getVideoData()['video_id'];
+            time_text.textContent = '';
             time_save = 0;
-            // setTimeout(function() {
-            //     var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-            //     info.style.display = 'none'
-            // }, 500)
         }
     })
 
@@ -68,12 +78,14 @@ var yt_dance_main = function() {
         if (event.target.nodeName == 'INPUT') {
             return;
         }
+        var code = 'NONE';
         switch (event.keyCode) {
             case 83: //s
+                code = 'save';
                 time_save = player.getCurrentTime();
-                var mins = parseInt(time_save / 60)
-                var secs = parseInt(time_save - mins * 60)
-                var msecs = parseInt(100*(time_save - mins * 60 - secs))
+                var mins = parseInt(time_save / 60);
+                var secs = parseInt(time_save - mins * 60);
+                var msecs = parseInt(100*(time_save - mins * 60 - secs));
                 if (secs < 10) {
                     secs = '0' + secs;
                 }
@@ -83,20 +95,24 @@ var yt_dance_main = function() {
                 time_text.textContent = mins + ':' + secs + ':' + msecs;
                 break;
             case 71: //g
+                code = 'goto';
                 player.seekTo(time_save, true);
                 break;  
             case 73: //i
+                code = 'mirror';
                 mirrored = !mirrored;
                 flip();
                 break;
             case 80: //p
+                code = 'speed up';
                 c += 0.1;
-                console.log(c)
                 break;
             case 81: //q
+                code = 'slow down'
                 c -= 0.1;
                 break;
             case 82: //r
+                code = 'reset';
                 c = 1;
                 if (mirrored) {
                     flip();
@@ -110,17 +126,26 @@ var yt_dance_main = function() {
                     player.playVideo();
                 }
                 break;
+            case 39: //right arrow
+                player.seekTo(player.getCurrentTime() + 5, true)
+                break;
+            case 37: //left arrow
+                player.seekTo(player.getCurrentTime() - 5, true)
+                break;
         }
         video.playbackRate = c;
         var str = ' [' + Math.round(c * 10)/10 + 'x';
         if (mirrored) {
-            str += ', mirrored'
+            str += ', mirrored';
         }
         str += ']'
         speed_text.textContent = str;
-        console.log('timestamp:', player.getCurrentTime())
-        console.log('playback rate:', video.playbackRate);
-        console.log('mirrored:', mirrored)
+        if (code != 'NONE') {
+            console.log(code);
+            console.log('timestamp:', player.getCurrentTime());
+            console.log('playback rate:', video.playbackRate);
+            console.log('mirrored:', mirrored);
+        }
     };
 
 
@@ -154,13 +179,15 @@ var yt_dance_main = function() {
         };
     }
 
+    // space bar doesn't go page down like normal
     window.addEventListener('keydown', function(e) {
-        if(e.keyCode == 32 && e.target == document.body) {
+        if(e.keyCode == 32 || e.keyCode == 37 || e.keyCode == 39) {
             e.preventDefault();
         }
     });
 }
 
+// only activate once per press of bookmark
 try {
     yt_dance_on;
 } catch (ReferenceError) {
