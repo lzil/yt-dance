@@ -78,6 +78,7 @@ var yt_dance_main = function() {
         if (event.target.nodeName == 'INPUT') {
             return;
         }
+        event.target == document.body
         var code = 'NONE';
         switch (event.keyCode) {
             case 83: //s
@@ -120,17 +121,21 @@ var yt_dance_main = function() {
                 }
                 break;
             case 32: //space
-                if (player.getPlayerState() == 1) {
-                    player.pauseVideo();
-                } else if (player.getPlayerState() == 2) {
-                    player.playVideo();
+                if (event.target == document.body) {
+                    event.preventDefault();
+                    var play_button = document.getElementsByClassName('ytp-play-button ytp-button')[0];
+                    play_button.click();
                 }
                 break;
             case 39: //right arrow
-                player.seekTo(player.getCurrentTime() + 5, true)
+                if (event.target == document.body) {
+                    player.seekTo(player.getCurrentTime() + 5, true)
+                }
                 break;
             case 37: //left arrow
-                player.seekTo(player.getCurrentTime() - 5, true)
+                if (event.target == document.body) {
+                    player.seekTo(player.getCurrentTime() - 5, true)
+                }
                 break;
         }
         video.playbackRate = c;
@@ -178,13 +183,6 @@ var yt_dance_main = function() {
             }
         };
     }
-
-    // space bar doesn't go page down like normal
-    window.addEventListener('keydown', function(e) {
-        if(e.keyCode == 32 || e.keyCode == 37 || e.keyCode == 39) {
-            e.preventDefault();
-        }
-    });
 }
 
 // only activate once per press of bookmark
