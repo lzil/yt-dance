@@ -26,6 +26,10 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 - '<space>' now pauses/unpauses video even when not focused on video
 - '<right/left arrows>' now fast forwards / rewinds 5 seconds when not focused on video
 
+# TROUBLESHOOTING
+
+- it's potentially interacting with another plugin you have. for instance if used with Chrome's youtube speed plugin then things will break
+
 */
 
 
@@ -64,8 +68,10 @@ var yt_dance_main = function() {
 
 
     player.addEventListener('onStateChange', function() {
-        var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-        info.style.display = 'none';
+        setTimeout(function() {
+            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
+            info.style.display = 'none';
+        }, 500)
         if (id !== player.getVideoData()['video_id']) {
             id = player.getVideoData()['video_id'];
             time_text.textContent = '';
@@ -78,7 +84,6 @@ var yt_dance_main = function() {
         if (event.target.nodeName == 'INPUT') {
             return;
         }
-        event.target == document.body
         var code = 'NONE';
         switch (event.keyCode) {
             case 83: //s
