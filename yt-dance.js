@@ -25,6 +25,9 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 - '<space>' now pauses/unpauses video even when not focused on video
 - '<right/left arrows>' now fast forwards / rewinds 5 seconds when not focused on video
+- ';' toggles auto-replay capabilities. DEFAULT = OFF
+
+- 'z' to remove this javascript from the video completely
 
 # TROUBLESHOOTING
 
@@ -34,25 +37,25 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 
 var yt_dance_main = function() {
-    // hide info button which changes layout of labels
-    var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-    info.style.display = 'none';
+    if (!on_lock) {
+        return;
+    }
 
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
 
     // label for speed of video
     var speed_node = document.createTextNode("[1x]");
-    var speed_text = document.createElement("p");
+    var speed_text = document.createElement("div");
     speed_text.appendChild(speed_node);
     vid_buttons.appendChild(speed_text);
-    speed_text.setAttribute('id', 'video-speed-label');
+    speed_text.setAttribute('id', 'video-spdeed-label');
     speed_text.setAttribute('style',
-        'background-color:rgba(0,0,0,0.3);font-size:25px;margin-top:10px;left:0;position:absolute;padding:0 5px 0 5px'
+        'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:10px'
     );
 
     // label for saved timestamp in video
     var time_node = document.createTextNode("");
-    var time_text = document.createElement("p");
+    var time_text = document.createElement("div");
     time_text.appendChild(time_node);
     vid_buttons.appendChild(time_text);
     time_text.setAttribute('id', 'video-time-label')
@@ -63,19 +66,20 @@ var yt_dance_main = function() {
     var video = document.getElementsByTagName('video')[0];
     var player = document.getElementById('movie_player');
     var mirrored = false;
+    var mirrorNode = null;
     var time_save = 0;
     var id = player.getVideoData()['video_id'];
 
+    var replay = false;
 
     player.addEventListener('onStateChange', function() {
-        setTimeout(function() {
-            var info = document.getElementsByClassName('ytp-button ytp-cards-button')[0];
-            info.style.display = 'none';
-        }, 500)
         if (id !== player.getVideoData()['video_id']) {
             id = player.getVideoData()['video_id'];
             time_text.textContent = '';
             time_save = 0;
+        }
+        if (replay && video.getCurrentTime() >= video.getDuration()) {
+            player.seekTo(0, true)
         }
     })
 
@@ -106,7 +110,6 @@ var yt_dance_main = function() {
                 break;  
             case 73: //i
                 code = 'mirror';
-                mirrored = !mirrored;
                 flip();
                 break;
             case 80: //p
@@ -122,8 +125,19 @@ var yt_dance_main = function() {
                 c = 1;
                 if (mirrored) {
                     flip();
-                    mirrored = false;
                 }
+                time_text.textContent = '';
+                time_save = 0;
+                break;
+            case 90: //z
+                on_lock = undefined;
+                vid_buttons.removeChild(time_text);
+                vid_buttons.removeChild(speed_text);
+                video.playbackRate = 1;
+                if (mirrored) {
+                    flip();
+                }
+                window.onkeydown = null;
                 break;
             case 32: //space
                 if (event.target == document.body) {
@@ -142,40 +156,48 @@ var yt_dance_main = function() {
                     player.seekTo(player.getCurrentTime() - 5, true)
                 }
                 break;
+            case 186: //semicolon (;)
+                replay = !replay;
         }
-        video.playbackRate = c;
-        var str = ' [' + Math.round(c * 10)/10 + 'x';
-        if (mirrored) {
-            str += ', mirrored';
-        }
-        str += ']'
-        speed_text.textContent = str;
         if (code != 'NONE') {
-            console.log(code);
-            console.log('timestamp:', player.getCurrentTime());
-            console.log('playback rate:', video.playbackRate);
-            console.log('mirrored:', mirrored);
+            video.playbackRate = c;
+            var str = ' [' + Math.round(c * 10)/10 + 'x';
+            if (mirrored) {
+                str += ', mirrored';
+            }
+            str += ']'
+            speed_text.textContent = str;
+            console.log(
+                code,
+                player.getCurrentTime(),
+                video.playbackRate,
+                mirrored
+            );
         }
     };
 
 
-    //from https://rawgit.com/amacfie/MirrorYouTubeVideos/master/Mirror_HTML5_Video.js
+    //adapted from https://rawgit.com/amacfie/MirrorYouTubeVideos/master/Mirror_HTML5_Video.js
     var flip = function() {
-        var node = document.createElement('style');
-        document.body.appendChild(node);
-        window.addStyleString = function(str) {
-            node.innerHTML = str;
+        if (mirrored) {
+            document.body.removeChild(mirrorNode);
+        } else {
+            mirrorNode = document.createElement('style');
+            document.body.appendChild(mirrorNode);
+            window.addStyleString = function(str) {
+                mirrorNode.innerHTML = str;
+            }
+
+            var cssText = ".xflip { \
+              -moz-transform: scale(-1, 1) !important;\
+              -webkit-transform: scale(-1, 1) !important;\
+              -o-transform: scale(-1, 1) !important;\
+              transform: scale(-1, 1) !important;\
+              filter: FlipH !important;\
+            }";
+            addStyleString(cssText);
         }
 
-        var cssText = ".xflip { \
-          -moz-transform: scale(-1, 1) !important;\
-          -webkit-transform: scale(-1, 1) !important;\
-          -o-transform: scale(-1, 1) !important;\
-          transform: scale(-1, 1) !important;\
-          filter: FlipH !important;\
-        }";
-
-        addStyleString(cssText);
         var numberOfVideos = document.getElementsByTagName("video").length;
         if(numberOfVideos >= 1) {
             var video;
@@ -187,14 +209,18 @@ var yt_dance_main = function() {
                 }
             }
         };
+        mirrored = !mirrored;
     }
 }
 
 // only activate once per press of bookmark
 try {
-    yt_dance_on;
+    if (!on_lock) {
+        on_lock = true;
+        yt_dance_main();
+    }
 } catch (ReferenceError) {
-    yt_dance_on = true;
+    on_lock = true;
     yt_dance_main();
 }
 
