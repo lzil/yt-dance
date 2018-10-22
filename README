@@ -7,7 +7,7 @@ Set the following as a bookmark in any browser and 'click' the bookmark on a You
 
 ~~~
 
-javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.rawgit.com/lzil/yt-dance/master/yt-dance.js%27%3B%7D)()%3B
+javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.jsdelivr.net/gh/lzil/yt-dance@83b98c1abf198312744329d72b617134b1eea655/yt-dance.js%27%3B%7D)()%3B
 
 ~~~
 
@@ -28,3 +28,5 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 TODO:
 turn autoplay off?
+get rid of sound on fullscreen
+make useful on other clients as well that are not youtube
