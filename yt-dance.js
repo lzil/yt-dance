@@ -17,7 +17,7 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 - 'p' to speed up by 0.1x
 - 'q' to slow down by 0.1x
-- 'i' to mirror (and again to unmirror)
+- 'w' to mirror (and again to unmirror) NOTE: USED TO BE 'i' BEFORE UPDATE
 - 'r' to reset to 1x unmirrored (original video)
 
 - 's' to save current timestamp
@@ -78,9 +78,6 @@ var yt_dance_main = function() {
             time_text.textContent = '';
             time_save = 0;
         }
-        if (replay && video.getCurrentTime() >= video.getDuration()) {
-            player.seekTo(0, true)
-        }
     })
 
     window.onkeydown = function(event) {
@@ -108,7 +105,7 @@ var yt_dance_main = function() {
                 code = 'goto';
                 player.seekTo(time_save, true);
                 break;  
-            case 73: //i
+            case 87: //w
                 code = 'mirror';
                 flip();
                 break;
@@ -142,28 +139,32 @@ var yt_dance_main = function() {
             case 32: //space
                 if (event.target == document.body) {
                     event.preventDefault();
-                    var play_button = document.getElementsByClassName('ytp-play-button ytp-button')[0];
-                    play_button.click();
+                    video.paused = !video.paused;
                 }
                 break;
-            case 39: //right arrow
-                if (event.target == document.body) {
-                    player.seekTo(player.getCurrentTime() + 5, true)
-                }
-                break;
-            case 37: //left arrow
-                if (event.target == document.body) {
-                    player.seekTo(player.getCurrentTime() - 5, true)
-                }
-                break;
-            case 186: //semicolon (;)
-                replay = !replay;
+            // case 39: //right arrow
+            //     if (event.target == document.body) {
+            //         player.seekTo(player.getCurrentTime() + 5, true)
+            //     }
+            //     break;
+            // case 37: //left arrow
+            //     if (event.target == document.body) {
+            //         player.seekTo(player.getCurrentTime() - 5, true)
+            //     }
+            //     break;
+            case 186: //semicolon (;) on IE/Safari
+            case 59: //semicolon (;) on Firefox
+                code = 'replay'
+                video.loop = !video.loop
         }
         if (code != 'NONE') {
             video.playbackRate = c;
             var str = ' [' + Math.round(c * 10)/10 + 'x';
             if (mirrored) {
                 str += ', mirrored';
+            }
+            if (video.loop) {
+                str += ', replay on'
             }
             str += ']'
             speed_text.textContent = str;
