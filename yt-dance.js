@@ -2,7 +2,7 @@
 
 speed / mirroring tools for Youtube
 
-(useful for learning dance from videos)
+(useful for learning dance from videos, lecture videos, etc.)
 
 # TO ACTIVATE
 Set the following as a bookmark in any browser and 'click' the bookmark on a Youtube video.
@@ -13,25 +13,9 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 ~~~
 
-# TO USE
+# USAGE
 
-- 'p' to speed up by 0.1x
-- 'q' to slow down by 0.1x
-- 'w' to mirror (and again to unmirror) NOTE: USED TO BE 'i' BEFORE UPDATE
-- 'r' to reset to 1x unmirrored (original video)
-
-- 's' to save current timestamp
-- 'g' to go to saved timestamp (defaults to 0:00:00)
-
-- '<space>' now pauses/unpauses video even when not focused on video
-- '<right/left arrows>' now fast forwards / rewinds 5 seconds when not focused on video
-- ';' toggles auto-replay capabilities. DEFAULT = OFF
-
-- 'z' to remove this javascript from the video completely
-
-# TROUBLESHOOTING
-
-- it's potentially interacting with another plugin you have. for instance if used with Chrome's youtube speed plugin then things will break
+See github.com/lzil/yt-dance for README
 
 */
 
@@ -44,24 +28,36 @@ var yt_dance_main = function() {
     var vid_buttons = document.getElementsByClassName('ytp-chrome-top-buttons')[0];
 
     // label for speed of video
-    var speed_node = document.createTextNode("[1x]");
     var speed_text = document.createElement("div");
-    speed_text.appendChild(speed_node);
+    speed_text.textContent = '[1x]';
     vid_buttons.appendChild(speed_text);
-    speed_text.setAttribute('id', 'video-spdeed-label');
+    speed_text.setAttribute('id', 'video-speed-label');
     speed_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:10px'
     );
 
     // label for saved timestamp in video
-    var time_node = document.createTextNode("");
     var time_text = document.createElement("div");
-    time_text.appendChild(time_node);
     vid_buttons.appendChild(time_text);
     time_text.setAttribute('id', 'video-time-label')
     time_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
     );
+
+    // information label
+    var info_a = document.createElement('a')
+    info_a.setAttribute('href', 'http://www.github.com/lzil/yt-dance')
+    info_a.setAttribute('target', '_blank')
+    var info_text = document.createElement("div");
+    info_text.appendChild(info_a);
+    vid_buttons.appendChild(info_text);
+    info_text.setAttribute('id', 'video-info-label');
+    info_text.setAttribute('style',
+        'background-color:rgba(0,0,0,0.3);font-size:15px;right:0;position:absolute;padding:0 5px 0 5px;top:10px'
+    );
+    info_a.textContent = 'press for help';
+    info_toggle = true;
+
 
     var video = document.getElementsByTagName('video')[0];
     var player = document.getElementById('movie_player');
@@ -104,8 +100,17 @@ var yt_dance_main = function() {
             case 71: //g
                 code = 'goto';
                 player.seekTo(time_save, true);
-                break;  
-            case 87: //w
+                break;
+            case 72: //h
+                code = 'help';
+                info_toggle = !info_toggle
+                if (info_toggle) {
+                    info_text.appendChild(info_a)
+                } else {
+                    info_text.removeChild(info_a)
+                }
+                break;
+            case 68: //d
                 code = 'mirror';
                 flip();
                 break;
@@ -127,9 +132,12 @@ var yt_dance_main = function() {
                 time_save = 0;
                 break;
             case 90: //z
+                code = 'abort'
+                c = 1;
                 on_lock = undefined;
                 vid_buttons.removeChild(time_text);
                 vid_buttons.removeChild(speed_text);
+                vid_buttons.removeChild(info_text)
                 video.playbackRate = 1;
                 if (mirrored) {
                     flip();
@@ -137,6 +145,7 @@ var yt_dance_main = function() {
                 window.onkeydown = null;
                 break;
             case 32: //space
+                code = 'pause'
                 if (event.target == document.body) {
                     event.preventDefault();
                     video.paused = !video.paused;
@@ -155,7 +164,15 @@ var yt_dance_main = function() {
             case 186: //semicolon (;) on IE/Safari
             case 59: //semicolon (;) on Firefox
                 code = 'replay'
-                video.loop = !video.loop
+                replay = !replay;
+                if (replay) {
+                    video.onended = function () {
+                        player.seekTo(time_save, true);
+                    }
+                } else {
+                    video.onended = null;
+                }
+                
         }
         if (code != 'NONE') {
             video.playbackRate = c;
@@ -163,7 +180,7 @@ var yt_dance_main = function() {
             if (mirrored) {
                 str += ', mirrored';
             }
-            if (video.loop) {
+            if (replay) {
                 str += ', replay on'
             }
             str += ']'

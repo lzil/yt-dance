@@ -1,13 +1,13 @@
 speed / mirroring tools for Youtube
 
-(useful for learning dance from videos)
+(useful for learning dance from videos, lecture videos, etc.)
 
 # TO ACTIVATE
 Set the following as a bookmark in any browser and 'click' the bookmark on a Youtube video.
 
 ~~~
 
-javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.jsdelivr.net/gh/lzil/yt-dance@83b98c1abf198312744329d72b617134b1eea655/yt-dance.js%27%3B%7D)()%3B
+javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.rawgit.com/lzil/yt-dance/master/yt-dance.js%27%3B%7D)()%3B
 
 ~~~
 
@@ -15,18 +15,26 @@ javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27scr
 
 - 'p' to speed up by 0.1x
 - 'q' to slow down by 0.1x
-- 'i' to mirror (and again to unmirror)
+- 'd' to mirror (and again to unmirror) NOTE: USED TO BE 'i' or 'w' BEFORE UPDATE
 - 'r' to reset to 1x unmirrored (original video)
 
 - 's' to save current timestamp
 - 'g' to go to saved timestamp (defaults to 0:00:00)
 
+- 'h' to toggle help button
+
 - '<space>' now pauses/unpauses video even when not focused on video
-- '<right/left arrows>' now fast forwards / rewinds 5 seconds when not focused on video
+- ';' toggles auto-replay (from stop point) capabilities. DEFAULT = OFF
 
 - 'z' to remove this javascript from the video completely
 
-TODO:
-turn autoplay off?
-get rid of sound on fullscreen
-make useful on other clients as well that are not youtube
+# TROUBLESHOOTING
+
+- it's potentially interacting with another plugin you have. for instance if used with Chrome's youtube speed plugin then things will potentially break
+- for other issues, contact me. liangz [at] gatsby.ucl.ac.uk
+
+
+# TODO
+- turn autoplay off?
+- get rid of sound on fullscreen
+- make useful on other clients as well that are not youtube
