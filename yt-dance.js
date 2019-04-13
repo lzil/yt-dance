@@ -41,7 +41,7 @@ var yt_dance_main = function() {
     vid_buttons.appendChild(time_text);
     time_text.setAttribute('id', 'video-time-label')
     time_text.setAttribute('style',
-        'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
+        'background-color:rgba(0,0,0,0.3);font-size:15px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
     );
 
     // information label
@@ -63,7 +63,10 @@ var yt_dance_main = function() {
     var player = document.getElementById('movie_player');
     var mirrored = false;
     var mirrorNode = null;
-    var time_save = 0;
+    var time_start = 0;
+    var time_start_text = 'start';
+    var time_end = video.getDuration();
+    var time_end_text = 'end';
     var id = player.getVideoData()['video_id'];
 
     var replay = false;
@@ -72,9 +75,26 @@ var yt_dance_main = function() {
         if (id !== player.getVideoData()['video_id']) {
             id = player.getVideoData()['video_id'];
             time_text.textContent = '';
-            time_save = 0;
+            time_start = 0;
         }
     })
+
+    video.ontimeupdate = function() {
+        var cTime = player.getCurrentTime();
+        if (!video.paused && cTime > time_end && cTime < time_end + video.playbackRate / 2) {
+            if (replay) {
+                player.seekTo(time_start);
+            } else {
+                video.pause();
+            }   
+        }
+    }
+
+    video.onended = function () {
+        if (replay && time_end == video.getDuration()) {
+            player.seekTo(time_start, true);
+        }
+    }
 
     window.onkeydown = function(event) {
         var c = video.playbackRate;
@@ -84,22 +104,52 @@ var yt_dance_main = function() {
         var code = 'NONE';
         switch (event.keyCode) {
             case 83: //s
-                code = 'save';
-                time_save = player.getCurrentTime();
-                var mins = parseInt(time_save / 60);
-                var secs = parseInt(time_save - mins * 60);
-                var msecs = parseInt(100*(time_save - mins * 60 - secs));
+                code = 'start';
+                if (time_start != 0) {
+                    time_start = 0;
+                    break;
+                }
+                var time = player.getCurrentTime();
+                if (time >= time_end) {
+                    break;
+                }
+                time_start = time;
+                var mins = parseInt(time_start / 60);
+                var secs = parseInt(time_start - mins * 60);
+                var msecs = parseInt(100*(time_start - mins * 60 - secs));
                 if (secs < 10) {
                     secs = '0' + secs;
                 }
                 if (msecs < 10) {
                     msecs = '0' + msecs;
                 }
-                time_text.textContent = mins + ':' + secs + ':' + msecs;
+                time_start_text = mins + ':' + secs + ':' + msecs;
+                break;
+            case 69: //e
+                code = 'end';
+                if (time_end != video.getDuration()) {
+                    time_end = video.getDuration();
+                    break;
+                }
+                var time = player.getCurrentTime();
+                if (time <= time_start) {
+                    break;
+                }
+                time_end = time;
+                var mins = parseInt(time_end / 60);
+                var secs = parseInt(time_end - mins * 60);
+                var msecs = parseInt(100 * (time_end - mins * 60 - secs));
+                if (secs < 10) {
+                    secs = '0' + secs;
+                }
+                if (msecs < 10) {
+                    msecs = '0' + msecs;
+                }
+                time_end_text = mins + ':' + secs + ':' + msecs;
                 break;
             case 71: //g
                 code = 'goto';
-                player.seekTo(time_save, true);
+                player.seekTo(time_start, true);
                 break;
             case 72: //h
                 code = 'help';
@@ -128,8 +178,9 @@ var yt_dance_main = function() {
                 if (mirrored) {
                     flip();
                 }
-                time_text.textContent = '';
-                time_save = 0;
+                time_start = 0;
+                time_end = video.getDuration();
+                replay = false;
                 break;
             case 90: //z
                 code = 'abort'
@@ -142,37 +193,15 @@ var yt_dance_main = function() {
                 if (mirrored) {
                     flip();
                 }
+                replay = false
+                video.onended = null;
                 window.onkeydown = null;
                 break;
-            case 32: //space
-                code = 'pause'
-                if (event.target == document.body) {
-                    event.preventDefault();
-                    video.paused = !video.paused;
-                }
-                break;
-            // case 39: //right arrow
-            //     if (event.target == document.body) {
-            //         player.seekTo(player.getCurrentTime() + 5, true)
-            //     }
-            //     break;
-            // case 37: //left arrow
-            //     if (event.target == document.body) {
-            //         player.seekTo(player.getCurrentTime() - 5, true)
-            //     }
-            //     break;
             case 186: //semicolon (;) on IE/Safari
             case 59: //semicolon (;) on Firefox
                 code = 'replay'
                 replay = !replay;
-                if (replay) {
-                    video.onended = function () {
-                        player.seekTo(time_save, true);
-                    }
-                } else {
-                    video.onended = null;
-                }
-                
+                break;
         }
         if (code != 'NONE') {
             video.playbackRate = c;
@@ -180,11 +209,27 @@ var yt_dance_main = function() {
             if (mirrored) {
                 str += ', mirrored';
             }
-            if (replay) {
-                str += ', replay on'
-            }
             str += ']'
             speed_text.textContent = str;
+
+            var str2 = ''
+            if (time_start == 0) {
+                str2 += 'start - ';
+            } else {
+                str2 += time_start_text + ' - '
+            }
+            if (time_end == video.getDuration()) {
+                str2 += 'end';
+            } else {
+                str2 += time_end_text
+            }
+            if (replay) {
+                str2 += ', replay on'
+            }
+            time_text.textContent = str2;
+            if (str2 == 'start - end') {
+                time_text.textContent = ''
+            }
             console.log(
                 code,
                 player.getCurrentTime(),
