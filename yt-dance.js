@@ -1,21 +1,9 @@
 /*
 
 speed / mirroring tools for Youtube
-
 (useful for learning dance from videos, lecture videos, etc.)
 
-# TO ACTIVATE
-Set the following as a bookmark in any browser and 'click' the bookmark on a Youtube video.
-
-~~~
-
-javascript:(function()%7Bdocument.body.appendChild(document.createElement(%27script%27)).src%3D%27https://cdn.rawgit.com/lzil/yt-dance/master/yt-dance.js%27%3B%7D)()%3B
-
-~~~
-
-# USAGE
-
-See github.com/lzil/yt-dance for README
+see www.github.com/lzil/yt-dance for details on usage, troubleshooting, etc.
 
 */
 
@@ -31,7 +19,6 @@ var yt_dance_main = function() {
     var speed_text = document.createElement("div");
     speed_text.textContent = '[1x]';
     vid_buttons.appendChild(speed_text);
-    speed_text.setAttribute('id', 'video-speed-label');
     speed_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:25px;left:0;position:absolute;padding:0 5px 0 5px;top:10px'
     );
@@ -39,7 +26,6 @@ var yt_dance_main = function() {
     // label for saved timestamp in video
     var time_text = document.createElement("div");
     vid_buttons.appendChild(time_text);
-    time_text.setAttribute('id', 'video-time-label')
     time_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:15px;left:0;position:absolute;padding:0 5px 0 5px;top:42px'
     );
@@ -51,37 +37,37 @@ var yt_dance_main = function() {
     var info_text = document.createElement("div");
     info_text.appendChild(info_a);
     vid_buttons.appendChild(info_text);
-    info_text.setAttribute('id', 'video-info-label');
     info_text.setAttribute('style',
         'background-color:rgba(0,0,0,0.3);font-size:15px;right:0;position:absolute;padding:0 5px 0 5px;top:10px'
     );
     info_a.textContent = 'press for help';
     info_toggle = true;
 
-
+    // global variables representing video player and custom states
     var video = document.getElementsByTagName('video')[0];
     var player = document.getElementById('movie_player');
     var mirrored = false;
     var mirrorNode = null;
     var time_start = 0;
     var time_start_text = 'start';
-    var time_end = video.getDuration();
+    // setting it to null to fix bug where it carries over to new videos
+    // could fix by setting it dynamically for every video? maybe later
+    var time_end = null;
     var time_end_text = 'end';
     var id = player.getVideoData()['video_id'];
-
     var replay = false;
 
     player.addEventListener('onStateChange', function() {
         if (id !== player.getVideoData()['video_id']) {
             id = player.getVideoData()['video_id'];
-            time_text.textContent = '';
-            time_start = 0;
         }
     })
 
     video.ontimeupdate = function() {
         var cTime = player.getCurrentTime();
-        if (!video.paused && cTime > time_end && cTime < time_end + video.playbackRate / 2) {
+        // covers no time_end (so video went to end) and time_end (video is past that time)
+        var ended = (time_end == null && cTime >= video.getDuration()) || (cTime > time_end && cTime < time_end + video.playbackRate / 2)
+        if (!video.paused && ended) {
             if (replay) {
                 player.seekTo(time_start);
             } else {
@@ -107,28 +93,22 @@ var yt_dance_main = function() {
                 code = 'start';
                 if (time_start != 0) {
                     time_start = 0;
+                    time_start_text = 'start';
                     break;
                 }
                 var time = player.getCurrentTime();
-                if (time >= time_end) {
+                // to account for time_end == null
+                if ((time_end == null && time >= video.getDuration()) || time >= time_end) {
                     break;
                 }
                 time_start = time;
-                var mins = parseInt(time_start / 60);
-                var secs = parseInt(time_start - mins * 60);
-                var msecs = parseInt(100*(time_start - mins * 60 - secs));
-                if (secs < 10) {
-                    secs = '0' + secs;
-                }
-                if (msecs < 10) {
-                    msecs = '0' + msecs;
-                }
-                time_start_text = mins + ':' + secs + ':' + msecs;
+                time_start_text = timestamp(time);
                 break;
             case 69: //e
                 code = 'end';
                 if (time_end != video.getDuration()) {
-                    time_end = video.getDuration();
+                    time_end = null;
+                    time_end_text = 'end';
                     break;
                 }
                 var time = player.getCurrentTime();
@@ -136,16 +116,7 @@ var yt_dance_main = function() {
                     break;
                 }
                 time_end = time;
-                var mins = parseInt(time_end / 60);
-                var secs = parseInt(time_end - mins * 60);
-                var msecs = parseInt(100 * (time_end - mins * 60 - secs));
-                if (secs < 10) {
-                    secs = '0' + secs;
-                }
-                if (msecs < 10) {
-                    msecs = '0' + msecs;
-                }
-                time_end_text = mins + ':' + secs + ':' + msecs;
+                time_end_text = timestamp(time);
                 break;
             case 71: //g
                 code = 'goto';
@@ -153,11 +124,11 @@ var yt_dance_main = function() {
                 break;
             case 72: //h
                 code = 'help';
-                info_toggle = !info_toggle
+                info_toggle = !info_toggle;
                 if (info_toggle) {
-                    info_text.appendChild(info_a)
+                    info_text.appendChild(info_a);
                 } else {
-                    info_text.removeChild(info_a)
+                    info_text.removeChild(info_a);
                 }
                 break;
             case 68: //d
@@ -179,11 +150,12 @@ var yt_dance_main = function() {
                     flip();
                 }
                 time_start = 0;
-                time_end = video.getDuration();
+                //time_end = video.getDuration();
+                time_end = null;
                 replay = false;
                 break;
             case 90: //z
-                code = 'abort'
+                code = 'abort';
                 c = 1;
                 on_lock = undefined;
                 vid_buttons.removeChild(time_text);
@@ -195,40 +167,33 @@ var yt_dance_main = function() {
                 }
                 replay = false
                 video.onended = null;
+                video.ontimeupdate = null;
                 window.onkeydown = null;
                 break;
             case 186: //semicolon (;) on IE/Safari
             case 59: //semicolon (;) on Firefox
-                code = 'replay'
+                code = 'replay';
                 replay = !replay;
                 break;
         }
+        // set the display text boxes
         if (code != 'NONE') {
             video.playbackRate = c;
             var str = ' [' + Math.round(c * 10)/10 + 'x';
             if (mirrored) {
                 str += ', mirrored';
             }
-            str += ']'
+            str += ']';
             speed_text.textContent = str;
 
-            var str2 = ''
-            if (time_start == 0) {
-                str2 += 'start - ';
-            } else {
-                str2 += time_start_text + ' - '
-            }
-            if (time_end == video.getDuration()) {
-                str2 += 'end';
-            } else {
-                str2 += time_end_text
-            }
+            var str2 = time_start_text + ' - ' + time_end_text;
             if (replay) {
-                str2 += ', replay on'
+                str2 += ', replay on';
             }
             time_text.textContent = str2;
             if (str2 == 'start - end') {
-                time_text.textContent = ''
+                time_text.textContent = '';
+                video.
             }
             console.log(
                 code,
@@ -239,6 +204,19 @@ var yt_dance_main = function() {
         }
     };
 
+    // time in seconds to legible timestamp
+    var timestamp = function(ts) {
+        var mins = parseInt(ts / 60);
+        var secs = parseInt(ts - mins * 60);
+        var msecs = parseInt(100 * (ts - mins * 60 - secs));
+        if (secs < 10) {
+            secs = '0' + secs;
+        }
+        if (msecs < 10) {
+            msecs = '0' + msecs;
+        }
+        return mins + ':' + secs + ':' + msecs;
+    }
 
     //adapted from https://rawgit.com/amacfie/MirrorYouTubeVideos/master/Mirror_HTML5_Video.js
     var flip = function() {
@@ -260,18 +238,6 @@ var yt_dance_main = function() {
             }";
             addStyleString(cssText);
         }
-
-        var numberOfVideos = document.getElementsByTagName("video").length;
-        if(numberOfVideos >= 1) {
-            var video;
-            for (var i = 0; i < numberOfVideos; ++i) {
-                if (document.getElementsByTagName("video")[i].videoHeight > 100) {
-                    video = document.getElementsByTagName("video")[i];
-                    video.classList.toggle('xflip');
-                    break;
-                }
-            }
-        };
         mirrored = !mirrored;
     }
 }
