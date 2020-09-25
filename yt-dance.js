@@ -65,8 +65,11 @@ var yt_dance_main = function() {
 
     video.ontimeupdate = function() {
         var cTime = player.getCurrentTime();
-        // covers no time_end (so video went to end) and time_end (video is past that time)
-        var ended = (time_end == null && cTime >= video.getDuration()) || (cTime > time_end && cTime < time_end + video.playbackRate / 2)
+        // no time_end set, so we hit the end of the video
+        var hit_video_end = (time_end == null && cTime >= video.getDuration());
+        // time_end set, so check to see if we're there or just past that point
+        var hit_time_end = (time_end != null && cTime > time_end && cTime < time_end + video.playbackRate);
+        var ended = hit_video_end || hit_time_end;
         if (!video.paused && ended) {
             if (replay) {
                 player.seekTo(time_start);
@@ -89,6 +92,7 @@ var yt_dance_main = function() {
         }
         var code = 'NONE';
         switch (event.keyCode) {
+
             case 83: //s
                 code = 'start';
                 if (time_start != 0) {
@@ -98,7 +102,7 @@ var yt_dance_main = function() {
                 }
                 var time = player.getCurrentTime();
                 // to account for time_end == null
-                if ((time_end == null && time >= video.getDuration()) || time >= time_end) {
+                if ((time_end == null && time >= video.getDuration()) || (time_end != null && time >= time_end)) {
                     break;
                 }
                 time_start = time;
@@ -106,7 +110,7 @@ var yt_dance_main = function() {
                 break;
             case 69: //e
                 code = 'end';
-                if (time_end != video.getDuration()) {
+                if (time_end != null) {
                     time_end = null;
                     time_end_text = 'end';
                     break;
@@ -193,7 +197,6 @@ var yt_dance_main = function() {
             time_text.textContent = str2;
             if (str2 == 'start - end') {
                 time_text.textContent = '';
-                video.
             }
             console.log(
                 code,
