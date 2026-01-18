@@ -66,7 +66,7 @@ var yt_dance_main = function() {
     video.ontimeupdate = function() {
         var cTime = player.getCurrentTime();
         // no time_end set, so we hit the end of the video
-        var hit_video_end = (time_end == null && cTime >= video.getDuration());
+        var hit_video_end = (time_end == null && cTime >= video.duration);
         // time_end set, so check to see if we're there or just past that point
         var hit_time_end = (time_end != null && cTime > time_end && cTime < time_end + video.playbackRate);
         var ended = hit_video_end || hit_time_end;
@@ -80,7 +80,7 @@ var yt_dance_main = function() {
     }
 
     video.onended = function () {
-        if (replay && time_end == video.getDuration()) {
+        if (replay && time_end == video.duration) {
             player.seekTo(time_start, true);
         }
     }
@@ -102,7 +102,7 @@ var yt_dance_main = function() {
                 }
                 var time = player.getCurrentTime();
                 // to account for time_end == null
-                if ((time_end == null && time >= video.getDuration()) || (time_end != null && time >= time_end)) {
+                if ((time_end == null && time >= video.duration) || (time_end != null && time >= time_end)) {
                     break;
                 }
                 time_start = time;
@@ -154,7 +154,7 @@ var yt_dance_main = function() {
                     flip();
                 }
                 time_start = 0;
-                //time_end = video.getDuration();
+                //time_end = video.duration;
                 time_end = null;
                 replay = false;
                 break;
@@ -255,12 +255,3 @@ try {
     on_lock = true;
     yt_dance_main();
 }
-
-//some google analytics so i can see how the script is being used lol
-(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-})(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
-
-ga('create', 'UA-65259513-3', 'auto');
-ga('send', 'pageview');
